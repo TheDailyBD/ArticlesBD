@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Upload News</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        textarea {
+            width: 100%;
+            height: 80px;
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin - Upload News</h1>
+        <form id="news-form">
+            <textarea id="news-text" placeholder="Write your 100-word update here..." maxlength="500" required></textarea>
+            <button type="submit">Post Update</button>
+        </form>
+    </div>
+
+    <script>
+        // Add news and save to localStorage
+        const addNews = (text) => {
+            const news = JSON.parse(localStorage.getItem('news')) || [];
+            news.unshift({ text, date: new Date().toISOString() }); // Add new news at the top
+            localStorage.setItem('news', JSON.stringify(news)); // Save to localStorage
+            alert('News uploaded successfully!');
+        };
+
+        // Form submission handler
+        document.getElementById('news-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = document.getElementById('news-text').value;
+            addNews(text);
+            document.getElementById('news-text').value = ''; // Clear the textarea
+        });
+    </script>
+</body>
+</html>

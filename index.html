@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bangladesh Daily Updates</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            line-height: 1.6;
+        }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #000000;
+            color: white;
+            padding: 10px 0;
+            display: flex;
+            justify-content: center; /* Center content horizontally */
+            align-items: center; /* Center content vertically */
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .header img {
+            width: 0.5in; /* Set width to 0.5 inch */
+            height: 0.5in; /* Set height to 0.5 inch */
+            margin-right: 10px; /* Space between logo and text */
+        }
+        .header .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 800px;
+            margin: 80px auto 20px; /* Adjust for fixed header */
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .news-item {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .news-item:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: bold;
+            color: #ff5722;
+            font-size: 14px;
+        }
+        .news-text {
+            margin-top: 5px;
+            color: #333;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <div class="header">
+        <!-- Logo -->
+        <img src="logo.png" alt="Logo"> <!-- Replace 'your-logo.png' with the path to your logo -->
+        <!-- Title -->
+        <div class="logo-text">Bangladesh Daily Updates</div>
+    </div>
+    
+    <!-- News Container -->
+    <div class="container">
+        <div id="news-feed">
+            <!-- News items will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script>
+        // Load news from localStorage or initialize an empty array
+        const loadNews = () => {
+            const storedNews = JSON.parse(localStorage.getItem('news')) || [];
+            const newsFeed = document.getElementById('news-feed');
+            newsFeed.innerHTML = ''; // Clear the feed
+
+            const today = new Date();
+
+            storedNews.forEach((item) => {
+                const newsDate = new Date(item.date);
+                const differenceInDays = Math.floor((today - newsDate) / (1000 * 60 * 60 * 24));
+
+                let label;
+                if (differenceInDays === 0) {
+                    label = 'Today';
+                } else if (differenceInDays === 1) {
+                    label = 'Yesterday';
+                } else {
+                    label = null; // Skip older news from showing
+                }
+
+                if (label) {
+                    const newsDiv = document.createElement('div');
+                    newsDiv.className = 'news-item';
+                    newsDiv.innerHTML = `
+                        <div class="news-content">
+                            <span class="label">${label}</span>
+                            <p>${item.text}</p>
+                        </div>
+                    `;
+                    newsFeed.appendChild(newsDiv);
+                }
+            });
+        };
+
+        // Load news on page load
+        loadNews();
+    </script>
+</body>
+</html>
