@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Upload News</title>
+    <title>Bangladesh Daily Updates</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,74 +12,108 @@
             background-color: #f9f9f9;
             line-height: 1.6;
         }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #000000;
+            color: white;
+            padding: 10px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .header img {
+            width: 0.5in;
+            height: 0.5in;
+            margin-right: 10px;
+        }
+        .header .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+        }
         .container {
-            max-width: 600px;
-            margin: 50px auto;
+            max-width: 800px;
+            margin: 80px auto 20px;
             background: #fff;
             padding: 20px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            text-align: center;
         }
-        h1 {
+        .news-item {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .news-item:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: bold;
+            color: #ff5722;
+            font-size: 14px;
+        }
+        .news-text {
+            margin-top: 5px;
             color: #333;
-        }
-        textarea {
-            width: 100%;
-            height: 80px;
-            margin-bottom: 10px;
-            padding: 10px;
-            font-size: 16px;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            background: #007bff;
-            color: #fff;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #0056b3;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Admin - Upload News</h1>
-        <form id="news-form">
-            <textarea id="news-text" placeholder="Write your news here..." maxlength="500" required></textarea>
-            <button type="submit">Post Update</button>
-        </form>
+    <div class="header">
+        <img src="logo.png" alt="Logo">
+        <div class="logo-text">Bangladesh Daily Updates</div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+    <div class="container">
+        <div id="news-feed"></div>
+    </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDz1nwSYqWa4AiLXfM8VFGk2CzW2Dl6bag",
-            authDomain: "thedailybd-acdaf.firebaseapp.com",
-            databaseURL: "https://thedailybd-acdaf-default-rtdb.firebaseio.com",
-            projectId: "thedailybd-acdaf",
-            storageBucket: "thedailybd-acdaf.appspot.com",
-            messagingSenderId: "582082023966",
-            appId: "1:582082023966:web:cdee6a8c28e4513761140f",
-            measurementId: "G-EML9VNGL8Z"
+    <script>
+        const loadNews = () => {
+            const storedNews = JSON.parse(localStorage.getItem('news')) || [];
+            const newsFeed = document.getElementById('news-feed');
+            newsFeed.innerHTML = '';
+
+            storedNews.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            const today = new Date();
+
+            storedNews.forEach((item) => {
+                const newsDate = new Date(item.date);
+                const differenceInDays = Math.floor((today - newsDate) / (1000 * 60 * 60 * 24));
+
+                let label;
+                if (differenceInDays === 0) {
+                    label = 'Today';
+                } else if (differenceInDays === 1) {
+                    label = 'Yesterday';
+                } else {
+                    label = `${differenceInDays} days ago`;
+                }
+
+                const newsDiv = document.createElement('div');
+                newsDiv.className = 'news-item';
+                newsDiv.innerHTML = `
+                    <div class="news-content">
+                        <span class="label">${label}</span>
+                        <p class="news-text">${item.text}</p>
+                    </div>
+                `;
+                newsFeed.appendChild(newsDiv);
+            });
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        // Check if reload is required
+        if (localStorage.getItem('reload') === 'true') {
+            localStorage.removeItem('reload');
+            location.reload();
+        }
 
-        document.getElementById('news-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const text = document.getElementById('news-text').value;
-            const newsRef = ref(db, 'news');
-            push(newsRef, { text, date: new Date().toISOString() });
-            alert('News uploaded successfully!');
-            document.getElementById('news-text').value = '';
-        });
+        // Load news on page load
+        loadNews();
     </script>
 </body>
 </html>
