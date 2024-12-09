@@ -21,15 +21,15 @@
             color: white;
             padding: 10px 0;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            justify-content: center; /* Center content horizontally */
+            align-items: center; /* Center content vertically */
             z-index: 1000;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
         .header img {
-            width: 0.5in;
-            height: 0.5in;
-            margin-right: 10px;
+            width: 0.5in; /* Set width to 0.5 inch */
+            height: 0.5in; /* Set height to 0.5 inch */
+            margin-right: 10px; /* Space between logo and text */
         }
         .header .logo-text {
             font-size: 24px;
@@ -37,7 +37,7 @@
         }
         .container {
             max-width: 800px;
-            margin: 80px auto 20px;
+            margin: 80px auto 20px; /* Adjust for fixed header */
             background: #fff;
             padding: 20px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -45,6 +45,9 @@
         .news-item {
             border-bottom: 1px solid #ddd;
             padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .news-item:last-child {
             border-bottom: none;
@@ -59,6 +62,11 @@
             color: #333;
             font-size: 14px;
         }
+        .delete-btn {
+            color: red;
+            cursor: pointer;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -66,67 +74,54 @@
         <img src="logo.png" alt="Logo">
         <div class="logo-text">Bangladesh Daily Updates</div>
     </div>
+
     <div class="container">
         <div id="news-feed"></div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDz1nwSYqWa4AiLXfM8VFGk2CzW2Dl6bag",
-            authDomain: "thedailybd-acdaf.firebaseapp.com",
-            databaseURL: "https://thedailybd-acdaf-default-rtdb.firebaseio.com",
-            projectId: "thedailybd-acdaf",
-            storageBucket: "thedailybd-acdaf.appspot.com",
-            messagingSenderId: "582082023966",
-            appId: "1:582082023966:web:cdee6a8c28e4513761140f",
-            measurementId: "G-EML9VNGL8Z"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
+    <script>
         const loadNews = () => {
-            const newsRef = ref(db, 'news');
+            const storedNews = JSON.parse(localStorage.getItem('news')) || [];
             const newsFeed = document.getElementById('news-feed');
-            newsFeed.innerHTML = '';
+            newsFeed.innerHTML = ''; // Clear the feed
 
-            onValue(newsRef, (snapshot) => {
-                const news = snapshot.val();
-                newsFeed.innerHTML = ''; // Clear feed
-                const today = new Date();
+            const today = new Date();
 
-                for (const key in news) {
-                    const item = news[key];
-                    const newsDate = new Date(item.date);
-                    const differenceInDays = Math.floor((today - newsDate) / (1000 * 60 * 60 * 24));
+            storedNews.forEach((item, index) => {
+                const newsDate = new Date(item.date);
+                const differenceInDays = Math.floor((today - newsDate) / (1000 * 60 * 60 * 24));
 
-                    let label;
-                    if (differenceInDays === 0) {
-                        label = 'Today';
-                    } else if (differenceInDays === 1) {
-                        label = 'Yesterday';
-                    } else {
-                        continue; // Skip older news
-                    }
-
-                    const newsDiv = document.createElement('div');
-                    newsDiv.className = 'news-item';
-                    newsDiv.innerHTML = `
-                        <div class="news-content">
-                            <span class="label">${label}</span>
-                            <p>${item.text}</p>
-                        </div>
-                    `;
-                    newsFeed.appendChild(newsDiv);
+                let label;
+                if (differenceInDays === 0) {
+                    label = 'Today';
+                } else if (differenceInDays === 1) {
+                    label = 'Yesterday';
+                } else {
+                    label = `${differenceInDays} days ago`;
                 }
+
+                const newsDiv = document.createElement('div');
+                newsDiv.className = 'news-item';
+                newsDiv.innerHTML = `
+                    <div class="news-content">
+                        <span class="label">${label}</span>
+                        <p class="news-text">${item.text}</p>
+                    </div>
+                    <span class="delete-btn" onclick="deleteNews(${index})">Delete</span>
+                `;
+                newsFeed.appendChild(newsDiv);
             });
         };
 
-        window.onload = loadNews;
+        const deleteNews = (index) => {
+            const storedNews = JSON.parse(localStorage.getItem('news')) || [];
+            storedNews.splice(index, 1); // Remove the news item
+            localStorage.setItem('news', JSON.stringify(storedNews));
+            loadNews(); // Reload the news feed
+        };
+
+        // Load news on page load
+        loadNews();
     </script>
 </body>
 </html>
