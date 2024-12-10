@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Upload News</title>
+    <title>Admin - Manage News</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -42,21 +42,49 @@
         button:hover {
             background: #0056b3;
         }
+        .news-list {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .news-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .news-item:last-child {
+            border-bottom: none;
+        }
+        .delete-btn {
+            padding: 5px 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background: #b21f2d;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Admin - Upload News</h1>
+        <h1>Admin - Manage News</h1>
         <form id="news-form">
             <textarea id="news-text" placeholder="Write your news here..." maxlength="500" required></textarea>
             <button type="submit">Post Update</button>
         </form>
+
+        <div class="news-list" id="news-list">
+            <h2>Uploaded News</h2>
+        </div>
     </div>
 
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDz1nwSYqWa4AiLXfM8VFGk2CzW2Dl6bag",
@@ -72,14 +100,51 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        const newsRef = ref(db, 'news');
+
+        // Function to upload news
         document.getElementById('news-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const text = document.getElementById('news-text').value;
-            const newsRef = ref(db, 'news');
             push(newsRef, { text, date: new Date().toISOString() });
             alert('News uploaded successfully!');
             document.getElementById('news-text').value = '';
         });
+
+        // Function to load news with delete button
+        const loadNews = () => {
+            const newsList = document.getElementById('news-list');
+            onValue(newsRef, (snapshot) => {
+                newsList.innerHTML = '<h2>Uploaded News</h2>'; // Reset the list
+                const news = snapshot.val();
+                for (const key in news) {
+                    const item = news[key];
+                    const newsItemDiv = document.createElement('div');
+                    newsItemDiv.className = 'news-item';
+                    newsItemDiv.innerHTML = `
+                        <span>${item.text}</span>
+                        <button class="delete-btn" data-key="${key}">Delete</button>
+                    `;
+                    // Insert new item at the top of the list
+                    newsList.insertBefore(newsItemDiv, newsList.querySelector('h2').nextSibling);
+                }
+
+                // Attach delete handlers
+                const deleteButtons = document.querySelectorAll('.delete-btn');
+                deleteButtons.forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        const key = btn.getAttribute('data-key');
+                        const newsToDelete = ref(db, `news/${key}`);
+                        remove(newsToDelete)
+                            .then(() => alert('News deleted successfully!'))
+                            .catch((error) => alert('Failed to delete news: ' + error));
+                    });
+                });
+            });
+        };
+
+        // Load news on page load
+        loadNews();
     </script>
 </body>
 </html>
