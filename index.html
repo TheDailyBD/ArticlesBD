@@ -121,7 +121,9 @@
                             <p>${item.text}</p>
                         </div>
                     `;
-                    newsFeed.appendChild(newsDiv);
+
+                    // Insert the news item at the top of the feed
+                    newsFeed.insertBefore(newsDiv, newsFeed.firstChild);
                 }
             });
         };
