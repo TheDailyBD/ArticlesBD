@@ -3,15 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARTICLES BD - Dashboard</title>
+    <title>Chotokothai - News</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <style>
+        /* General Styles */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
+            background-image: url('background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             background-color: #f9f9f9;
-            line-height: 1.6;
+            line-height: 1.4;
         }
 
         .header {
@@ -31,14 +36,9 @@
         }
 
         .header img {
-            width: 0.3in;
-            height: 0.3in;
+            width: 150px;
+            height: 40px;
             margin-right: 10px;
-        }
-
-        .header .logo-text {
-            font-size: 24px;
-            font-weight: bold;
         }
 
         .nav {
@@ -63,54 +63,157 @@
         }
 
         .container {
-            max-width: 800px;
-            margin: 80px auto 20px;
-            background: #fff;
-            padding: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin: 60px auto;
+            max-width: 100%;
+            padding: 10px;
         }
 
         .news-item {
-            border-bottom: 1px solid #ddd;
-            padding: 10px 0;
+            background: #fff7b4;
+            width: 100%;
+            max-width: 510px;
+            margin: 10px auto;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 8px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            color: white;
         }
 
-        .news-item:last-child {
-            border-bottom: none;
+        .image-box {
+            width: 100%;
+            height: 300px;
+            background-color: #ddd;
+            background-size: cover;
+            background-position: center;
+            display: none;
+        }
+
+        .news-content {
+            padding: 15px;
         }
 
         .label {
             font-weight: bold;
-            color: #ff5722;
-            font-size: 14px;
+            color: #000;
+            font-size: 9px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
         }
 
-        .news-content p {
+        .headline {
+            font-weight: bold;
+            font-size: 24px;
+            color: black;
+            margin-bottom: 4px;
+    line-height: 1.1;
+        }
+
+        .subtext {
+            font-size: 16px;
+            color: #000;
+        }
+
+        .uploader-name {
+            font-size: 11px;
+            color: #000;
+            margin-top: 10px;
+        }
+
+        .like-button {
             margin-top: 5px;
-            color: #333;
-            font-family: "Times New Roman", san serif;
-            font-weight: semi bold;
-            font-size: 14px;
+            padding: 5px 10px;
+            background-color: #212521;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .like-button.liked {
+            background-color: #ff0000;
+        }
+
+        .like-count {
+            margin-top: 5px;
+            font-size: 10px;
+            color: #000;;
+        }
+
+        @media (max-width: 600px) {
+            .nav a:first-child {
+                display: none;
+            }
+
+            .headline {
+                font-size: 18px;
+            }
+
+            .subtext {
+                font-size: 15px;
+            }
+
+            .image-box {
+                height: 250px;
+            }
+        }
+
+        .taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: #fff;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .taskbar .circle {
+            width: 60px;
+            height: 60px;
+            background-color: #f1f1f1;
+            border-radius: 50%;
+            margin: 0 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .taskbar .circle img {
+            width: 30px;
+            height: 30px;
         }
     </style>
 </head>
 <body>
     <div class="header">
         <img src="logo.png" alt="Logo">
-        <div class="logo-text">ARTICLES BD</div>
         <div class="nav">
             <a href="index.html">Home</a>
             <a href="about.html">About Us</a>
         </div>
     </div>
 
-    <div class="container" id="content-container">
-        <div id="news-feed"></div>
+    <div class="container" id="news-feed"></div>
+
+    <div class="taskbar">
+        <a href="post.html" class="circle">
+            <img src="post.png" alt="Post">
+        </a>
+        <a href="profile.html" class="circle">
+            <img src="prof.png" alt="Profile">
+        </a>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDz1nwSYqWa4AiLXfM8VFGk2CzW2Dl6bag",
@@ -131,34 +234,54 @@
             const newsFeed = document.getElementById('news-feed');
             newsFeed.innerHTML = '';
 
+            const likedPosts = JSON.parse(localStorage.getItem('likedPosts')) || {};
+            const currentTime = Date.now();
+
             onValue(newsRef, (snapshot) => {
-                const news = snapshot.val();
                 newsFeed.innerHTML = '';
-                const today = new Date();
+                const news = snapshot.val();
 
-                for (const key in news) {
-                    const item = news[key];
-                    const newsDate = new Date(item.date);
-                    const differenceInDays = Math.floor((today - newsDate) / (1000 * 60 * 60 * 24));
+                const sortedNews = Object.keys(news).map(key => ({
+                    ...news[key],
+                    key
+                })).sort((a, b) => new Date(b.date) - new Date(a.date));
 
-                    let label;
-                    if (differenceInDays === 0) {
-                        label = 'Today';
-                    } else if (differenceInDays === 1) {
-                        label = 'Yesterday';
-                    } else {
-                        continue;
+                for (const item of sortedNews) {
+                    const newsDate = new Date(item.date).getTime();
+
+                    if (currentTime - newsDate <= 72 * 60 * 60 * 1000) {
+                        const newsDiv = document.createElement('div');
+                        newsDiv.className = 'news-item';
+
+                        const imageBox = item.imageUrl 
+                            ? `<div class="image-box" style="background-image: url('${item.imageUrl}'); display: block;"></div>` 
+                            : '';
+
+                        newsDiv.innerHTML = `
+                            ${imageBox}
+                            <div class="news-content">
+                                <span class="label">${new Date(item.date).toLocaleDateString()}</span>
+                                <div class="headline">${item.headline}</div>
+                                <div class="subtext">${item.subtext || ''}</div>
+                                <div class="uploader-name">Shared by: <strong>${item.uploaderName || 'Anonymous'}</strong></div>
+                                <button class="like-button ${likedPosts[item.key] ? 'liked' : ''}">Like</button>
+                                <div class="like-count">Likes: ${item.likes || 0}</div>
+                            </div>
+                        `;
+
+                        const likeButton = newsDiv.querySelector('.like-button');
+                        likeButton.addEventListener('click', () => {
+                            if (!likedPosts[item.key]) {
+                                likedPosts[item.key] = true;
+                                localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
+                                const newLikes = (item.likes || 0) + 1;
+                                update(ref(db, `news/${item.key}`), { likes: newLikes });
+                                likeButton.classList.add('liked');
+                            }
+                        });
+
+                        newsFeed.appendChild(newsDiv);
                     }
-
-                    const newsDiv = document.createElement('div');
-                    newsDiv.className = 'news-item';
-                    newsDiv.innerHTML = `
-                        <div class="news-content">
-                            <span class="label">${label}</span>
-                            <p>${item.text}</p>
-                        </div>
-                    `;
-                    newsFeed.insertBefore(newsDiv, newsFeed.firstChild);
                 }
             });
         };

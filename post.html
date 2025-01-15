@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post News</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border-radius: 10px;
+        }
+        .logo {
+            margin-bottom: 20px;
+        }
+        .logo img {
+            width: 100px;
+            height: auto;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        textarea, input {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+            border-radius: 15px;
+            border: 2px solid #ccc;
+        }
+        textarea:focus, input:focus {
+            border-color: #008000;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #008000;
+            color: #fff;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 15px;
+        }
+        button:hover {
+            background: #005700;
+        }
+        .attachment-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .attachment-container img {
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background-color: #fff;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .nav-circle {
+            width: 60px;
+            height: 60px;
+            background-color: #f1f1f1;
+            border-radius: 50%;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .nav-circle img {
+            width: 30px;
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="main.png" alt="Logo">
+        </div>
+        <h1>Post News</h1>
+        <form id="news-form">
+            <input type="text" id="name" placeholder="Enter your name" maxlength="100" required>
+            <textarea id="headline" placeholder="Enter news headline" maxlength="200" required></textarea>
+            <textarea id="subtext" placeholder="Enter subtext (optional)" maxlength="300"></textarea>
+            <div class="attachment-container">
+                <input type="url" id="image-url" placeholder="Enter image URL (optional)" maxlength="500" pattern="https?://.+" title="Please enter a valid URL starting with http:// or https://">
+                <label for="file-upload">
+                    <img src="attach.png" alt="Attach">
+                </label>
+                <input type="file" id="file-upload" style="display: none;" accept="image/*">
+            </div>
+            <button type="submit">Submit News</button>
+        </form>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <a href="news.html" class="nav-circle">
+            <img src="news.png" alt="News">
+        </a>
+        <a href="profile.html" class="nav-circle">
+            <img src="prof.png" alt="Profile">
+        </a>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDz1nwSYqWa4AiLXfM8VFGk2CzW2Dl6bag",
+            authDomain: "thedailybd-acdaf.firebaseapp.com",
+            databaseURL: "https://thedailybd-acdaf-default-rtdb.firebaseio.com",
+            projectId: "thedailybd-acdaf",
+            storageBucket: "thedailybd-acdaf.appspot.com",
+            messagingSenderId: "582082023966",
+            appId: "1:582082023966:web:cdee6a8c28e4513761140f",
+            measurementId: "G-EML9VNGL8Z"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Reference to the "news" data in the database
+        const newsRef = ref(db, 'news');
+
+        // Function to check for abusive words
+        const abusiveWords = [
+            "motherchod", "behenchod", "chutiya", "chut", "lawda", "kutta", "bastard", "idiot", "fucker", "loser"
+        ];
+
+        function containsAbusiveWords(text) {
+            const lowerCaseText = text.toLowerCase();
+            return abusiveWords.some(word => lowerCaseText.includes(word));
+        }
+
+        // Handle news submission
+        document.getElementById('news-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const headline = document.getElementById('headline').value;
+            const subtext = document.getElementById('subtext').value;
+            const imageUrl = document.getElementById('image-url').value;
+            const fileUpload = document.getElementById('file-upload').files[0];
+
+            // Validate inputs and check for abusive words
+            if (containsAbusiveWords(name) || containsAbusiveWords(headline) || containsAbusiveWords(subtext)) {
+                alert("Your submission contains abusive language. Please edit and try again.");
+                return;
+            }
+
+            if (name.trim() === "" || headline.trim() === "") {
+                alert("Name and headline are required!");
+                return;
+            }
+
+            // Handle file upload
+            const attachmentUrl = fileUpload ? URL.createObjectURL(fileUpload) : imageUrl;
+
+            // Push the news to the database
+            push(newsRef, {
+                uploaderName: name,
+                headline,
+                subtext,
+                imageUrl: attachmentUrl,
+                deviceId: localStorage.getItem('deviceId'),
+                date: new Date().toISOString()
+            }).then(() => {
+                alert('News submitted successfully!');
+                document.getElementById('news-form').reset();
+            }).catch((error) => {
+                console.error("Error uploading news:", error);
+                alert("Failed to submit news. Please try again.");
+            });
+        });
+    </script>
+</body>
+</html>
